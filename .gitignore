@@ -1,0 +1,15 @@
+# Binaries
+ss-unchained
+ss-unchained-*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Go
+vendor/

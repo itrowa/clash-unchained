@@ -1,0 +1,43 @@
+# Residential Static IP Configuration
+residential:
+  # SOCKS5 proxy server address
+  server: "your.residential.ip"
+  # SOCKS5 proxy port
+  port: 443
+  # SOCKS5 username
+  username: "your_username"
+  # SOCKS5 password
+  password: "your_password"
+
+# Node configuration
+node:
+  # Name of the residential proxy node (optional, default: Long-Term-Proxy)
+  name: "Long-Term-Proxy"
+
+# Generator options
+options:
+  # Enable Tailscale bypass (default: true)
+  tailscale_bypass: true
+
+  # Your Tailscale tailnet name (e.g., "example.ts.net")
+  # Only needed if tailscale_bypass is true
+  tailnet: "your-tailnet.ts.net"
+
+  # First hop proxy group name in your subscription
+  # This is the proxy group that will be used to connect to the residential SOCKS5
+  first_hop_proxy: "Proxies"
+
+# Proxy group configuration
+proxy_group:
+  # Name of the AI proxy group to create
+  name: "LLM-Chain"
+
+# AI domains configuration
+ai_domains:
+  # Use built-in AI domain list (default: true)
+  use_builtin: true
+
+  # Custom additional domains (optional)
+  # Format: just the domain, e.g., "my-ai-service.com"
+  # custom:
+  #   - "my-ai-service.com"
