@@ -1,4 +1,4 @@
-# ss-unchained
+# clash-unchained
 
 > Turn any Clash subscription into an AI-unlocking proxy with one script.
 
@@ -42,14 +42,14 @@ Grab the binary for your platform:
 
 | Platform | Download |
 |----------|----------|
-| macOS (Apple Silicon) | `ss-unchained-darwin-arm64` |
-| macOS (Intel) | `ss-unchained-darwin-amd64` |
-| Linux | `ss-unchained-linux-amd64` |
-| Windows | `ss-unchained-windows-amd64.exe` |
+| macOS (Apple Silicon) | `clash-unchained-darwin-arm64` |
+| macOS (Intel) | `clash-unchained-darwin-amd64` |
+| Linux | `clash-unchained-linux-amd64` |
+| Windows | `clash-unchained-windows-amd64.exe` |
 
 ```bash
 # Make it executable (macOS/Linux)
-chmod +x ss-unchained-*
+chmod +x clash-unchained-*
 ```
 
 ### 2. Configure
@@ -81,7 +81,7 @@ ai_domains:
 ### 3. Generate
 
 ```bash
-./ss-unchained -o clash-script-injection.js
+./clash-unchained -o clash-script-injection.js
 ```
 
 ### 4. Install in Clash Verge
@@ -124,9 +124,9 @@ The generator creates a JavaScript script that, when added to Clash Verge, injec
 ## Build from Source
 
 ```bash
-git clone https://github.com/huanghe/ss-unchained.git
-cd ss-unchained
-go build -o ss-unchained .
+git clone https://github.com/huanghe/clash-unchained.git
+cd clash-unchained
+go build -o clash-unchained .
 ```
 
 ## License

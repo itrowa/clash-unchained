@@ -1,4 +1,4 @@
-module github.com/huanghe/ss-unchained
+module github.com/huanghe/clash-unchained
 
 go 1.21
 

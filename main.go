@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/huanghe/ss-unchained/cmd"
+	"github.com/huanghe/clash-unchained/cmd"
 )
 
 func main() {

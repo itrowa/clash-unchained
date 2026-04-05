@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/huanghe/ss-unchained/internal/config"
-	"github.com/huanghe/ss-unchained/internal/generator"
+	"github.com/huanghe/clash-unchained/internal/config"
+	"github.com/huanghe/clash-unchained/internal/generator"
 )
 
 var (
@@ -18,9 +18,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "ss-unchained",
+	Use:   "clash-unchained",
 	Short: "Turn any Clash subscription into an AI-unlocking proxy with one script",
-	Long:  `ss-unchained generates a Clash Verge script that adds a chain proxy routing your AI traffic through a static long-term residential IP.`,
+	Long:  `clash-unchained generates a Clash Verge script that adds a chain proxy routing your AI traffic through a static long-term residential IP.`,
 	RunE:  run,
 }
 
@@ -31,7 +31,7 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.Flags().StringVar(&cfgFile, "config", "", "config file path (default: ./config.yaml or $HOME/.config/ss-unchained/config.yaml)")
+	rootCmd.Flags().StringVar(&cfgFile, "config", "", "config file path (default: ./config.yaml or $HOME/.config/clash-unchained/config.yaml)")
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file path (default: stdout)")
 	rootCmd.Flags().BoolP("version", "v", false, "show version")
 }
@@ -43,7 +43,7 @@ func initConfig() {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(".")
-		viper.AddConfigPath("$HOME/.config/ss-unchained")
+		viper.AddConfigPath("$HOME/.config/clash-unchained")
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -56,7 +56,7 @@ func initConfig() {
 
 func run(cmd *cobra.Command, args []string) error {
 	if cmd.Flags().Changed("version") {
-		fmt.Println("ss-unchained v0.1.0")
+		fmt.Println("clash-unchained v0.1.0")
 		return nil
 	}
 
