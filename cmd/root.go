@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	cfgFile    string
-	outputFile string
+	cfgFile     string
+	outputFile  string
+	reconfigure bool
 )
 
 var rootCmd = &cobra.Command{
@@ -30,8 +31,9 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.Flags().StringVar(&cfgFile, "config", "", "config file path (default: ./config.yaml or $HOME/.config/clash-unchained/config.yaml)")
+	rootCmd.Flags().StringVar(&cfgFile, "config", "", "config file path (default: ./config.yaml)")
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file path (default: stdout)")
+	rootCmd.Flags().BoolVarP(&reconfigure, "reconfigure", "r", false, "re-run the setup wizard even if config.yaml exists")
 	rootCmd.Flags().BoolP("version", "v", false, "show version")
 }
 
@@ -54,11 +56,22 @@ func initConfig() {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	if cmd.Flags().Changed("version") {
-		fmt.Println("clash-unchained v0.1.0")
+	if v, _ := cmd.Flags().GetBool("version"); v {
+		fmt.Println("clash-unchained", version)
 		return nil
 	}
 
+	// ── Wizard mode ────────────────────────────────────────────────────────
+	// Trigger when: no config file found, OR --reconfigure flag is set.
+	configFound := viper.ConfigFileUsed() != ""
+	if !configFound || reconfigure {
+		if reconfigure && configFound {
+			fmt.Println("重新配置模式：将覆盖现有 config.yaml")
+		}
+		return RunWizard(outputFile)
+	}
+
+	// ── Normal mode (config.yaml exists) ──────────────────────────────────
 	cfg, err := config.DecodeViper(viper.AllSettings())
 	if err != nil {
 		return fmt.Errorf("failed to decode config: %w", err)
