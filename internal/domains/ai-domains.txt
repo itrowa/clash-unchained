@@ -30,7 +30,6 @@ gemini.google.com
 makersuite.google.com
 ai.google.dev
 geminiapi.googleapis.com
-cloud.google.com/ai
 paie.googleapis.com
 dialogflow.googleapis.com
 

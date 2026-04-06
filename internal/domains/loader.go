@@ -2,19 +2,16 @@ package domains
 
 import (
 	"bufio"
-	"os"
+	_ "embed"
 	"strings"
 )
 
-func Load(path string) ([]string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+//go:embed ai-domains.txt
+var embeddedDomains string
 
+func Load() ([]string, error) {
 	var rules []string
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(strings.NewReader(embeddedDomains))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") {
@@ -22,10 +19,5 @@ func Load(path string) ([]string, error) {
 		}
 		rules = append(rules, line)
 	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return rules, nil
+	return rules, scanner.Err()
 }

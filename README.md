@@ -30,8 +30,8 @@ In the era of LLMs, many AI providers block datacenter IPs. This tool generates 
 - **Zero Impact on Subscription** — The generated script runs automatically on every subscription refresh. No more manual configuration.
 - **100% Safe** — Never leaks your subscription info. All processing happens locally.
 - **Set It and Forget It** — No background daemon. Configure once, enjoy forever.
-- **65+ Built-in AI Domains** — OpenAI, Claude, Gemini, and more
-- **Tailscale Bypass** — Keep your VPN traffic direct
+- **55+ Built-in AI Domains** — OpenAI, Claude, Gemini, and more
+- **Tailscale Bypass** — Keep your VPN traffic direct, no config needed
 - **Cross-Platform** — macOS, Linux, Windows supported
 
 ## Quick Start
@@ -68,7 +68,6 @@ node:
 
 options:
   tailscale_bypass: true
-  tailnet: "your-tailnet.ts.net"
   first_hop_proxy: "Proxies"  # Your subscription proxy group name
 
 proxy_group:
@@ -86,10 +85,10 @@ ai_domains:
 
 ### 4. Install in Clash Verge
 
-1. Open Clash Verge → Select your subscription → Edit → **Script**
-2. Add Script → Select `clash-script-injection.js`
-3. Enable the script
-4. Apply changes
+1. Open Clash Verge → Profiles → Find your subscription → Right Click → **Extend Script**
+2. Paste the generated script content into the script editor
+3. Save and close the editor
+4. Refresh your subscription — enjoy!
 
 ## Configuration Options
 
@@ -101,8 +100,7 @@ ai_domains:
 | `residential.password` | SOCKS5 password | Required |
 | `node.name` | Name of the proxy node | Long-Term-Proxy |
 | `options.first_hop_proxy` | First hop proxy group in your subscription | Required |
-| `options.tailscale_bypass` | Enable Tailscale bypass | true |
-| `options.tailnet` | Your Tailscale tailnet (e.g., `example.ts.net`) | If tailscale_bypass |
+| `options.tailscale_bypass` | Route all `*.ts.net` traffic direct | true |
 | `proxy_group.name` | AI proxy group name | LLM-Chain |
 | `ai_domains.use_builtin` | Use built-in AI domains | true |
 | `ai_domains.custom` | Custom domains | - |

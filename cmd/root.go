@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -69,16 +68,7 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("config validation failed: %w", err)
 	}
 
-	exePath, err := os.Executable()
-	if err != nil {
-		exePath = "."
-	}
-	domainsPath := filepath.Join(filepath.Dir(exePath), "data", "ai-domains.txt")
-	if _, err := os.Stat(domainsPath); os.IsNotExist(err) {
-		domainsPath = filepath.Join(".", "data", "ai-domains.txt")
-	}
-
-	output, err := generator.Generate(cfg, domainsPath)
+	output, err := generator.Generate(cfg)
 	if err != nil {
 		return fmt.Errorf("generation failed: %w", err)
 	}

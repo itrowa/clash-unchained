@@ -16,12 +16,8 @@ node:
 
 # Generator options
 options:
-  # Enable Tailscale bypass (default: true)
+  # Enable Tailscale bypass — routes all *.ts.net traffic direct
   tailscale_bypass: true
-
-  # Your Tailscale tailnet name (e.g., "example.ts.net")
-  # Only needed if tailscale_bypass is true
-  tailnet: "your-tailnet.ts.net"
 
   # First hop proxy group name in your subscription
   # This is the proxy group that will be used to connect to the residential SOCKS5

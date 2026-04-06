@@ -1,4 +1,6 @@
 # Binaries
+clash-unchained
+clash-unchained-*
 ss-unchained
 ss-unchained-*
 
@@ -10,6 +12,7 @@ ss-unchained-*
 
 # macOS
 .DS_Store
+**/.DS_Store
 
 # Go
 vendor/
