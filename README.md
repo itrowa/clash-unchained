@@ -104,6 +104,34 @@ ai_domains:
 3. Save and close
 4. Refresh your subscription — done!
 
+### 5. Verify It's Working
+
+Add `ipify.org` to your custom domains temporarily, regenerate the script, and reinstall:
+
+```yaml
+ai_domains:
+  proxy_group: "AI-Services"
+  use_builtin: true
+  custom:
+    - "ipify.org"   # temporary — remove after testing
+```
+
+Then run the check:
+
+```bash
+# Check your current subscription IP (baseline)
+curl https://api.ipify.org
+
+# Check the IP Clash routes through AI-Services (replace port with yours)
+curl --proxy socks5h://127.0.0.1:7897 https://api.ipify.org
+```
+
+The second IP should match your residential proxy provider's IP — **not** your subscription node's IP. If they differ, the chain proxy is working correctly.
+
+You can also verify inside Clash Verge: open **Logs** and look for a `chatgpt.com` connection — it should show `Chains: AI-Services / My-Residential-IP`.
+
+> After testing, remove `ipify.org` from `custom` and regenerate the script.
+
 ## Configuration Reference
 
 ### `nodes[]` — Proxy Nodes to Inject

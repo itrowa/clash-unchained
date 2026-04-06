@@ -103,6 +103,34 @@ ai_domains:
 3. 保存并关闭编辑器
 4. 刷新订阅 — 完成！
 
+### 5. 验证是否生效
+
+在 `config.yaml` 中临时添加 `ipify.org` 到自定义域名，重新生成并重新注入脚本：
+
+```yaml
+ai_domains:
+  proxy_group: "AI-Services"
+  use_builtin: true
+  custom:
+    - "ipify.org"   # 仅用于测试，验证完删掉
+```
+
+然后执行验证：
+
+```bash
+# 查看订阅节点的 IP（基准值）
+curl https://api.ipify.org
+
+# 查看经过 AI-Services 路由后的 IP（端口号以你的 Clash 配置为准）
+curl --proxy socks5h://127.0.0.1:7897 https://api.ipify.org
+```
+
+第二个 IP 应该和你的住宅代理商分配的 IP 一致，**而不是**订阅节点的 IP。两个 IP 不同，说明链式代理正常工作。
+
+也可以在 Clash Verge 里确认：打开**日志**，找到 `chatgpt.com` 的连接记录，应当显示 `Chains: AI-Services / My-Residential-IP`。
+
+> 验证完成后，记得删除 `ipify.org` 那一行并重新生成脚本。
+
 ## 配置项说明
 
 ### `nodes[]` — 注入的代理节点
