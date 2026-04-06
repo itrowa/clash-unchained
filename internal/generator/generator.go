@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/huanghe/clash-unchained/internal/config"
-	"github.com/huanghe/clash-unchained/internal/domains"
+	"github.com/itrowa/clash-unchained/internal/config"
+	"github.com/itrowa/clash-unchained/internal/domains"
 )
 
 type TemplateData struct {

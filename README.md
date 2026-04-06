@@ -122,7 +122,7 @@ The generator creates a JavaScript script that, when added to Clash Verge, injec
 ## Build from Source
 
 ```bash
-git clone https://github.com/huanghe/clash-unchained.git
+git clone https://github.com/itrowa/clash-unchained.git
 cd clash-unchained
 go build -o clash-unchained .
 ```

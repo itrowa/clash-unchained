@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/huanghe/clash-unchained/internal/config"
-	"github.com/huanghe/clash-unchained/internal/generator"
+	"github.com/itrowa/clash-unchained/internal/config"
+	"github.com/itrowa/clash-unchained/internal/generator"
 )
 
 var (

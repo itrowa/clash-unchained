@@ -1,4 +1,4 @@
-module github.com/huanghe/clash-unchained
+module github.com/itrowa/clash-unchained
 
 go 1.21
 
