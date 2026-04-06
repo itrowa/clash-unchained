@@ -30,7 +30,8 @@ In the era of LLMs, many AI providers block datacenter IPs. This tool generates 
 
 ## Features
 
-- **Zero Impact on Subscription** — The generated script runs automatically on every subscription refresh. No more manual configuration.
+- **Interactive Setup Wizard** — No config files to edit. Just run and answer a few questions.
+- **Zero Impact on Subscription** — The generated script runs automatically on every subscription refresh.
 - **100% Local** — Never leaks your subscription info. All processing happens locally.
 - **Set It and Forget It** — No background daemon. Configure once, enjoy forever.
 - **75+ Built-in AI Domains** — OpenAI, Claude, Gemini, Copilot, and more
@@ -55,58 +56,26 @@ Grab the binary for your platform from the [Releases](https://github.com/itrowa/
 chmod +x clash-unchained-*
 ```
 
-### 2. Configure
-
-Create `config.yaml` (copy from `config.yaml.example`):
-
-```yaml
-# Step 1: Your residential/static IP credentials
-nodes:
-  - name: "My-Residential-IP"    # Label shown in Clash UI — name it anything
-    type: socks5
-    server: "your.residential.ip"
-    port: 443
-    username: "your_username"
-    password: "your_password"
-    # Which group in your subscription to route through (usually "Proxies" or "节点选择")
-    dialer_proxy: "Proxies"
-
-# Step 2: Create a routing group for AI traffic
-proxy_groups:
-  - name: "AI-Services"          # Label shown in Clash UI
-    type: select
-    proxies:
-      - "My-Residential-IP"      # Must match the node name above
-
-  # Optional: remove if you don't use Tailscale
-  - name: "Tailscale"
-    type: direct
-    tailscale_bypass: true
-
-# Step 3: AI domain routing
-ai_domains:
-  proxy_group: "AI-Services"     # Must match the group name above
-  use_builtin: true              # 75+ built-in AI domains
-```
-
-> **How to find `dialer_proxy`?** Open Clash Verge, look at the top-level selection group in your subscription — it's usually called `Proxies` or `节点选择`.
-
-### 3. Generate
+### 2. Run the Setup Wizard
 
 ```bash
-./clash-unchained -o clash-script-injection.js
+./clash-unchained
 ```
 
-### 4. Install in Clash Verge
+The wizard will ask a few questions — residential proxy credentials, your subscription's proxy group name, and display names for Clash UI. It then saves `config.yaml` and generates `clash-script-injection.js` in one shot.
+
+> **Re-run the wizard anytime** with `./clash-unchained -r`
+
+### 3. Install in Clash Verge
 
 1. Open Clash Verge → Profiles → Find your subscription → Right Click → **Extend Script**
-2. Paste the generated script content into the script editor
+2. Paste the content of `clash-script-injection.js` into the script editor
 3. Save and close
 4. Refresh your subscription — done!
 
-### 5. Verify It's Working
+### 4. Verify It's Working
 
-Add `ipify.org` to your custom domains temporarily, regenerate the script, and reinstall:
+Add `ipify.org` to your `config.yaml` temporarily, regenerate, and reinstall:
 
 ```yaml
 ai_domains:
@@ -116,23 +85,33 @@ ai_domains:
     - "ipify.org"   # temporary — remove after testing
 ```
 
-Then run the check:
+```bash
+./clash-unchained -o clash-script-injection.js
+```
+
+Then run:
 
 ```bash
-# Check your current subscription IP (baseline)
+# Your subscription node's IP (baseline)
 curl https://api.ipify.org
 
-# Check the IP Clash routes through AI-Services (replace port with yours)
+# IP seen when routed through AI-Services (adjust port to match your Clash config)
 curl --proxy socks5h://127.0.0.1:7897 https://api.ipify.org
 ```
 
-The second IP should match your residential proxy provider's IP — **not** your subscription node's IP. If they differ, the chain proxy is working correctly.
+The second IP should match your residential proxy provider's IP. If the two IPs differ, the chain proxy is working correctly. ✅
 
-You can also verify inside Clash Verge: open **Logs** and look for a `chatgpt.com` connection — it should show `Chains: AI-Services / My-Residential-IP`.
+You can also check in Clash Verge: open **Logs** and look for a `chatgpt.com` entry — it should show `Chains: AI-Services / My-Residential-IP`.
 
-> After testing, remove `ipify.org` from `custom` and regenerate the script.
+> After testing, remove `ipify.org` from `custom` and regenerate.
 
-## Configuration Reference
+## Advanced Configuration
+
+Power users can edit `config.yaml` directly (see `config.yaml.example` for reference), then regenerate:
+
+```bash
+./clash-unchained -o clash-script-injection.js
+```
 
 ### `nodes[]` — Proxy Nodes to Inject
 
@@ -155,7 +134,7 @@ You can also verify inside Clash Verge: open **Logs** and look for a `chatgpt.co
 | `proxies` | List of node names in this group | For `select` type |
 | `tailscale_bypass` | Inject Tailscale DIRECT rules + DNS | No |
 
-> When `tailscale_bypass: true` is set, the group itself is not injected (DIRECT is Clash built-in). Instead, routing rules for `*.ts.net` and Tailscale IP ranges are added, along with Tailscale DNS configuration.
+> When `tailscale_bypass: true` is set, no proxy group is injected (DIRECT is Clash built-in). Instead, routing rules for `*.ts.net` and Tailscale IP ranges are added along with Tailscale DNS configuration.
 
 ### `ai_domains` — AI Domain Routing
 

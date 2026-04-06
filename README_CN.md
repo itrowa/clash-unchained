@@ -29,6 +29,7 @@
 
 ## 特性
 
+- **交互式配置向导** — 无需编辑配置文件，运行后回答几个问题即可完成全部配置
 - **不影响订阅** — 生成的脚本在每次订阅刷新时自动生效，无需重复配置
 - **完全本地** — 所有处理在本地完成，订阅信息不会外泄
 - **一劳永逸** — 无后台守护进程，配置一次永久生效
@@ -54,58 +55,26 @@
 chmod +x clash-unchained-*
 ```
 
-### 2. 配置
-
-参考 `config.yaml.example` 创建 `config.yaml`：
-
-```yaml
-# 第一步：填写你的静态住宅 IP 信息
-nodes:
-  - name: "My-Residential-IP"    # 随便起名，会显示在 Clash UI 的节点列表里
-    type: socks5
-    server: "your.residential.ip"
-    port: 443
-    username: "your_username"
-    password: "your_password"
-    # 通过订阅里的哪个节点组连到这个住宅 IP（通常叫 "Proxies" 或 "节点选择"）
-    dialer_proxy: "Proxies"
-
-# 第二步：给 AI 流量建一个路由组
-proxy_groups:
-  - name: "AI-Services"          # 随便起名，会显示在 Clash UI 的策略组里
-    type: select
-    proxies:
-      - "My-Residential-IP"      # 必须和上面 name 一致
-
-  # 可选：Tailscale 直连，不用可删掉这段
-  - name: "Tailscale"
-    type: direct
-    tailscale_bypass: true
-
-# 第三步：配置 AI 域名路由
-ai_domains:
-  proxy_group: "AI-Services"     # 必须和上面 name 一致
-  use_builtin: true              # 内置 75+ AI 域名
-```
-
-> **`dialer_proxy` 怎么填？** 打开 Clash Verge，找到你订阅里最顶层的手动选择组，通常叫 `Proxies` 或 `节点选择`，填入该名称即可。
-
-### 3. 生成脚本
+### 2. 运行配置向导
 
 ```bash
-./clash-unchained -o clash-script-injection.js
+./clash-unchained
 ```
 
-### 4. 安装到 Clash Verge
+向导会引导你填写住宅代理信息、订阅代理组名称和 Clash UI 显示名称，完成后自动保存 `config.yaml` 并生成 `clash-script-injection.js`，一步到位。
+
+> **随时重新配置**：`./clash-unchained -r`
+
+### 3. 安装到 Clash Verge
 
 1. 打开 Clash Verge → 配置 → 找到你的订阅 → 右键 → **扩展脚本**
-2. 将生成的脚本内容粘贴到脚本编辑器中
+2. 将 `clash-script-injection.js` 的内容粘贴到脚本编辑器中
 3. 保存并关闭编辑器
 4. 刷新订阅 — 完成！
 
-### 5. 验证是否生效
+### 4. 验证是否生效
 
-在 `config.yaml` 中临时添加 `ipify.org` 到自定义域名，重新生成并重新注入脚本：
+在 `config.yaml` 中临时添加 `ipify.org`，重新生成并重新注入：
 
 ```yaml
 ai_domains:
@@ -115,23 +84,33 @@ ai_domains:
     - "ipify.org"   # 仅用于测试，验证完删掉
 ```
 
+```bash
+./clash-unchained -o clash-script-injection.js
+```
+
 然后执行验证：
 
 ```bash
-# 查看订阅节点的 IP（基准值）
+# 订阅节点的 IP（基准值）
 curl https://api.ipify.org
 
-# 查看经过 AI-Services 路由后的 IP（端口号以你的 Clash 配置为准）
+# 经过 AI-Services 路由后的 IP（端口号以你的 Clash 配置为准）
 curl --proxy socks5h://127.0.0.1:7897 https://api.ipify.org
 ```
 
-第二个 IP 应该和你的住宅代理商分配的 IP 一致，**而不是**订阅节点的 IP。两个 IP 不同，说明链式代理正常工作。
+第二个 IP 应和住宅代理商分配的 IP 一致，**而非**订阅节点 IP。两者不同，说明链式代理正常工作。✅
 
-也可以在 Clash Verge 里确认：打开**日志**，找到 `chatgpt.com` 的连接记录，应当显示 `Chains: AI-Services / My-Residential-IP`。
+也可以在 Clash Verge 里确认：打开**日志**，找到 `chatgpt.com` 的连接记录，应显示 `Chains: AI-Services / My-Residential-IP`。
 
-> 验证完成后，记得删除 `ipify.org` 那一行并重新生成脚本。
+> 验证完成后，删除 `ipify.org` 那一行并重新生成脚本。
 
-## 配置项说明
+## 高级配置
+
+熟悉配置的用户可直接编辑 `config.yaml`（参考 `config.yaml.example`），然后重新生成：
+
+```bash
+./clash-unchained -o clash-script-injection.js
+```
 
 ### `nodes[]` — 注入的代理节点
 
@@ -154,7 +133,7 @@ curl --proxy socks5h://127.0.0.1:7897 https://api.ipify.org
 | `proxies` | 组内节点名称列表 | `select` 类型必填 |
 | `tailscale_bypass` | 注入 Tailscale DIRECT 规则与 DNS 配置 | 否 |
 
-> 当 `tailscale_bypass: true` 时，该条目本身不会生成代理组（DIRECT 是 Clash 内置的），而是注入 `*.ts.net` 及 Tailscale IP 段的直连规则，并配置 Tailscale DNS。
+> 当 `tailscale_bypass: true` 时，不会生成代理组（DIRECT 是 Clash 内置的），而是注入 `*.ts.net` 及 Tailscale IP 段的直连规则并配置 Tailscale DNS。
 
 ### `ai_domains` — AI 域名路由
 
