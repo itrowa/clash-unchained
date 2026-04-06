@@ -12,18 +12,18 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                       AI 服务流量                                 │
-│  设备 → LLM-Chain → Long-Term-Proxy（经订阅节点）→ AI 服务        │
+│                       AI 服务流量                               │
+│  设备 → AI-Services → My-Residential-IP（经订阅节点）→ AI 服务  │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────┐
-│                       普通流量                                    │
-│  设备 → 订阅节点（不变）→ 互联网                                   │
+│                       普通流量                                  │
+│  设备 → 订阅节点（不变）→ 互联网                                │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Tailscale 流量                               │
-│  设备 → DIRECT（直连）                                           │
+│                     Tailscale 流量                              │
+│  设备 → DIRECT（直连）                                          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -32,7 +32,7 @@
 - **不影响订阅** — 生成的脚本在每次订阅刷新时自动生效，无需重复配置
 - **完全本地** — 所有处理在本地完成，订阅信息不会外泄
 - **一劳永逸** — 无后台守护进程，配置一次永久生效
-- **55+ 内置 AI 域名** — 覆盖 OpenAI、Claude、Gemini 等主流服务
+- **75+ 内置 AI 域名** — 覆盖 OpenAI、Claude、Gemini、Copilot 等主流服务
 - **Tailscale 自动直连** — `*.ts.net` 流量自动绕过代理，无需额外配置
 - **跨平台** — 支持 macOS、Linux、Windows
 
@@ -56,30 +56,39 @@ chmod +x clash-unchained-*
 
 ### 2. 配置
 
-创建 `config.yaml`：
+参考 `config.yaml.example` 创建 `config.yaml`：
 
 ```yaml
-residential:
-  server: "your.residential.ip"   # 住宅 SOCKS5 服务器地址
-  port: 443
-  username: "your_username"
-  password: "your_password"
+# 第一步：填写你的静态住宅 IP 信息
+nodes:
+  - name: "My-Residential-IP"    # 随便起名，会显示在 Clash UI 的节点列表里
+    type: socks5
+    server: "your.residential.ip"
+    port: 443
+    username: "your_username"
+    password: "your_password"
+    # 通过订阅里的哪个节点组连到这个住宅 IP（通常叫 "Proxies" 或 "节点选择"）
+    dialer_proxy: "Proxies"
 
-node:
-  name: "Long-Term-Proxy"         # 节点名称，可自定义
+# 第二步：给 AI 流量建一个路由组
+proxy_groups:
+  - name: "AI-Services"          # 随便起名，会显示在 Clash UI 的策略组里
+    type: select
+    proxies:
+      - "My-Residential-IP"      # 必须和上面 name 一致
 
-options:
-  tailscale_bypass: true
-  first_hop_proxy: "Proxies"      # 你的订阅中的代理组名称
+  # 可选：Tailscale 直连，不用可删掉这段
+  - name: "Tailscale"
+    type: direct
+    tailscale_bypass: true
 
-proxy_group:
-  name: "LLM-Chain"
-
+# 第三步：配置 AI 域名路由
 ai_domains:
-  use_builtin: true
+  proxy_group: "AI-Services"     # 必须和上面 name 一致
+  use_builtin: true              # 内置 75+ AI 域名
 ```
 
-> **`first_hop_proxy` 怎么填？** 打开 Clash Verge，找到你的订阅配置里的主代理组名称（通常是 "Proxies" 或 "节点选择"）填入即可。
+> **`dialer_proxy` 怎么填？** 打开 Clash Verge，找到你订阅里最顶层的手动选择组，通常叫 `Proxies` 或 `节点选择`，填入该名称即可。
 
 ### 3. 生成脚本
 
@@ -96,31 +105,53 @@ ai_domains:
 
 ## 配置项说明
 
-| 配置项 | 说明 | 默认值 |
-|--------|------|--------|
-| `residential.server` | 住宅 SOCKS5 服务器地址 | 必填 |
-| `residential.port` | 住宅 SOCKS5 端口 | 443 |
-| `residential.username` | SOCKS5 用户名 | 必填 |
-| `residential.password` | SOCKS5 密码 | 必填 |
-| `node.name` | 代理节点名称 | Long-Term-Proxy |
-| `options.first_hop_proxy` | 订阅中的首跳代理组名称 | 必填 |
-| `options.tailscale_bypass` | 将所有 `*.ts.net` 流量直连 | true |
-| `proxy_group.name` | AI 代理组名称 | LLM-Chain |
-| `ai_domains.use_builtin` | 使用内置 AI 域名列表 | true |
-| `ai_domains.custom` | 自定义额外域名 | - |
+### `nodes[]` — 注入的代理节点
+
+| 字段 | 说明 | 是否必填 |
+|------|------|----------|
+| `name` | 节点名称，显示在 Clash UI 中 | 必填 |
+| `type` | 代理类型（目前支持 `socks5`） | 否（默认 `socks5`） |
+| `server` | 住宅代理服务器地址 | 必填 |
+| `port` | 代理端口 | 必填 |
+| `username` | SOCKS5 用户名 | 必填 |
+| `password` | SOCKS5 密码 | 必填 |
+| `dialer_proxy` | 用于连接该节点的订阅代理组名称 | 必填 |
+
+### `proxy_groups[]` — 注入的代理组
+
+| 字段 | 说明 | 是否必填 |
+|------|------|----------|
+| `name` | 代理组名称，显示在 Clash UI 中 | 必填 |
+| `type` | 代理组类型（`select`、`direct` 等） | 必填 |
+| `proxies` | 组内节点名称列表 | `select` 类型必填 |
+| `tailscale_bypass` | 注入 Tailscale DIRECT 规则与 DNS 配置 | 否 |
+
+> 当 `tailscale_bypass: true` 时，该条目本身不会生成代理组（DIRECT 是 Clash 内置的），而是注入 `*.ts.net` 及 Tailscale IP 段的直连规则，并配置 Tailscale DNS。
+
+### `ai_domains` — AI 域名路由
+
+| 字段 | 说明 | 默认值 |
+|------|------|--------|
+| `proxy_group` | AI 流量路由到哪个代理组 | 必填 |
+| `use_builtin` | 使用内置 AI 域名列表（75+ 条） | `true` |
+| `custom` | 额外自定义域名 | - |
 
 ## 工作原理
 
-生成器创建一段 JavaScript 脚本，注入到 Clash Verge 后，会在订阅配置中添加一个带有 `dialer-proxy` 属性的住宅 SOCKS5 节点。AI 流量经过该节点时，到住宅 SOCKS5 服务器的连接会先通过你的订阅代理转发，再由住宅 IP 访问 AI 服务。
+生成器创建一段 JavaScript 脚本，Clash Verge 在每次刷新订阅时自动执行。脚本会：
+
+1. 将住宅 IP 作为 SOCKS5 节点注入，`dialer-proxy` 指向你的订阅代理组
+2. 注入包含该节点的 AI 路由策略组
+3. 在规则最前面插入 AI 域名规则，匹配到的流量走该策略组
 
 ```
-1. Clash Verge 在订阅刷新时执行脚本
-2. 脚本注入 Long-Term-Proxy 节点和 LLM-Chain 代理组
-3. AI 流量匹配 DOMAIN-SUFFIX 规则 → 路由到 LLM-Chain
-4. LLM-Chain 选择 Long-Term-Proxy 节点
-5. Long-Term-Proxy 经由订阅节点连接住宅 SOCKS5 服务器
-6. 住宅 SOCKS5 服务器连接 AI 服务
-7. AI 服务看到的是住宅 IP，而非数据中心 IP
+设备访问 openai.com
+  → 匹配 DOMAIN-SUFFIX 规则 → 路由到 AI-Services 组
+  → AI-Services 选择 My-Residential-IP 节点
+  → My-Residential-IP 经由订阅节点（dialer_proxy）建立连接
+  → 订阅节点连接到住宅 SOCKS5 服务器
+  → 住宅 SOCKS5 连接 OpenAI
+  → OpenAI 看到的是住宅 IP，而非数据中心 IP
 ```
 
 ## 从源码构建

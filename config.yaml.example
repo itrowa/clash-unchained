@@ -1,39 +1,41 @@
-# Residential Static IP Configuration
-residential:
-  # SOCKS5 proxy server address
-  server: "your.residential.ip"
-  # SOCKS5 proxy port
-  port: 443
-  # SOCKS5 username
-  username: "your_username"
-  # SOCKS5 password
-  password: "your_password"
+# ─────────────────────────────────────────────────────────────────────────────
+# 第一步：填写你的静态住宅 IP 信息
+# （AI 服务看到的出口 IP 就是这个，用来绕过 AI 服务对数据中心 IP 的封锁）
+# ─────────────────────────────────────────────────────────────────────────────
+nodes:
+  - name: "My-Residential-IP"    # 随便起名，会显示在 Clash UI 的节点列表里
+    type: socks5
+    server: "your.residential.ip"
+    port: 443
+    username: "your_username"
+    password: "your_password"
+    # 通过订阅里的哪个节点组连到这个住宅 IP
+    # → 打开你的 Clash 订阅，找到最顶层的手动选择组，通常叫 "Proxies" 或 "节点选择"
+    dialer_proxy: "Proxies"
 
-# Node configuration
-node:
-  # Name of the residential proxy node (optional, default: Long-Term-Proxy)
-  name: "Long-Term-Proxy"
+# ─────────────────────────────────────────────────────────────────────────────
+# 第二步：给 AI 流量建一个路由组
+# （这个组会显示在 Clash UI，让你随时知道 AI 流量在走哪条链路）
+# ─────────────────────────────────────────────────────────────────────────────
+proxy_groups:
+  - name: "AI-Services"          # 随便起名，会显示在 Clash UI 的策略组里
+    type: select
+    proxies:
+      - "My-Residential-IP"      # ← 必须和上面 nodes[].name 保持一致
 
-# Generator options
-options:
-  # Enable Tailscale bypass — routes all *.ts.net traffic direct
-  tailscale_bypass: true
+  # 可选：Tailscale 直连
+  # 如果你用 Tailscale 组网，开启后 *.ts.net 流量走 DIRECT，不经过任何代理
+  # 不用 Tailscale 的话可以删掉这段
+  - name: "Tailscale"
+    type: direct
+    tailscale_bypass: true
 
-  # First hop proxy group name in your subscription
-  # This is the proxy group that will be used to connect to the residential SOCKS5
-  first_hop_proxy: "Proxies"
-
-# Proxy group configuration
-proxy_group:
-  # Name of the AI proxy group to create
-  name: "LLM-Chain"
-
-# AI domains configuration
+# ─────────────────────────────────────────────────────────────────────────────
+# 第三步：配置 AI 域名路由
+# ─────────────────────────────────────────────────────────────────────────────
 ai_domains:
-  # Use built-in AI domain list (default: true)
-  use_builtin: true
-
-  # Custom additional domains (optional)
-  # Format: just the domain, e.g., "my-ai-service.com"
+  proxy_group: "AI-Services"     # ← 必须和上面 proxy_groups[].name 保持一致
+  use_builtin: true              # 内置 75+ AI 域名（OpenAI、Claude、Gemini、Copilot 等）
+  # 额外追加自定义域名（可选）
   # custom:
   #   - "my-ai-service.com"

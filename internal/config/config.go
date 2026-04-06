@@ -6,71 +6,86 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+// NodeConfig represents a single proxy node to inject into Clash's proxies[] list.
+type NodeConfig struct {
+	Name        string `mapstructure:"name"`
+	Type        string `mapstructure:"type"`
+	Server      string `mapstructure:"server"`
+	Port        int    `mapstructure:"port"`
+	Username    string `mapstructure:"username"`
+	Password    string `mapstructure:"password"`
+	DialerProxy string `mapstructure:"dialer_proxy"`
+}
+
+// ProxyGroupConfig represents a proxy group to inject into Clash's proxy-groups[] list.
+// Set TailscaleBypass: true on a type:direct entry to inject ts.net DIRECT rules + DNS
+// instead of creating an actual proxy group.
+type ProxyGroupConfig struct {
+	Name            string   `mapstructure:"name"`
+	Type            string   `mapstructure:"type"`
+	Proxies         []string `mapstructure:"proxies"`
+	TailscaleBypass bool     `mapstructure:"tailscale_bypass"`
+}
+
+// AIDomainsConfig controls which domains are routed through the AI proxy group.
+type AIDomainsConfig struct {
+	ProxyGroup string   `mapstructure:"proxy_group"`
+	UseBuiltin bool     `mapstructure:"use_builtin"`
+	Custom     []string `mapstructure:"custom"`
+}
+
 type Config struct {
-	ResidentialServer   string   `mapstructure:"residential.server"`
-	ResidentialPort     int      `mapstructure:"residential.port"`
-	ResidentialUsername string   `mapstructure:"residential.username"`
-	ResidentialPassword string   `mapstructure:"residential.password"`
-	NodeName            string   `mapstructure:"node.name"`
-	TailscaleBypass     bool     `mapstructure:"options.tailscale_bypass"`
-	FirstHopProxy       string   `mapstructure:"options.first_hop_proxy"`
-	ProxyGroupName      string   `mapstructure:"proxy_group.name"`
-	UseBuiltinDomains   bool     `mapstructure:"ai_domains.use_builtin"`
-	CustomDomains       []string `mapstructure:"ai_domains.custom"`
+	Nodes       []NodeConfig       `mapstructure:"nodes"`
+	ProxyGroups []ProxyGroupConfig `mapstructure:"proxy_groups"`
+	AIDomains   AIDomainsConfig    `mapstructure:"ai_domains"`
 }
 
 func (c *Config) Validate() error {
-	if c.ResidentialServer == "" {
-		return fmt.Errorf("residential.server is required")
+	if len(c.Nodes) == 0 {
+		return fmt.Errorf("'nodes' is required: define at least one proxy node")
 	}
-	if c.ResidentialPort == 0 {
-		return fmt.Errorf("residential.port is required")
+	for i, node := range c.Nodes {
+		if node.Name == "" {
+			return fmt.Errorf("nodes[%d].name is required", i)
+		}
+		if node.Server == "" {
+			return fmt.Errorf("nodes[%d].server is required", i)
+		}
+		if node.Port == 0 {
+			return fmt.Errorf("nodes[%d].port is required", i)
+		}
+		if c.Nodes[i].Type == "" {
+			c.Nodes[i].Type = "socks5"
+		}
 	}
-	if c.ResidentialUsername == "" {
-		return fmt.Errorf("residential.username is required")
+	if len(c.ProxyGroups) == 0 {
+		return fmt.Errorf("'proxy_groups' is required: define at least one proxy group")
 	}
-	if c.ResidentialPassword == "" {
-		return fmt.Errorf("residential.password is required")
+	for i, pg := range c.ProxyGroups {
+		if pg.Name == "" {
+			return fmt.Errorf("proxy_groups[%d].name is required", i)
+		}
 	}
-	if c.FirstHopProxy == "" {
-		return fmt.Errorf("options.first_hop_proxy is required")
+	if c.AIDomains.ProxyGroup == "" {
+		return fmt.Errorf("ai_domains.proxy_group is required")
 	}
-	if c.ProxyGroupName == "" {
-		c.ProxyGroupName = "LLM-Chain"
+	if !c.AIDomains.UseBuiltin && len(c.AIDomains.Custom) == 0 {
+		c.AIDomains.UseBuiltin = true
 	}
 	return nil
 }
 
-func flattenMap(m map[string]interface{}, prefix string) map[string]interface{} {
-	result := make(map[string]interface{})
-	for k, v := range m {
-		key := k
-		if prefix != "" {
-			key = prefix + "." + k
-		}
-		if vm, ok := v.(map[string]interface{}); ok {
-			inner := flattenMap(vm, key)
-			for ik, iv := range inner {
-				result[ik] = iv
-			}
-		} else {
-			result[key] = v
-		}
-	}
-	return result
-}
-
 func DecodeViper(viperMap map[string]interface{}) (*Config, error) {
-	flat := flattenMap(viperMap, "")
-
 	var cfg Config
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result: &cfg,
+		Result:           &cfg,
+		WeaklyTypedInput: true,
+		TagName:          "mapstructure",
 	})
 	if err != nil {
 		return nil, err
 	}
-	if err := decoder.Decode(flat); err != nil {
+	if err := decoder.Decode(viperMap); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
