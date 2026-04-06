@@ -1,5 +1,7 @@
 # clash-unchained
 
+[English](README.md) | [中文](README_CN.md)
+
 > Turn any Clash subscription into an AI-unlocking proxy with one script.
 
 ## What It Does
