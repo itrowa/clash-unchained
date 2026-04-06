@@ -4,8 +4,6 @@
 
 > Turn any Clash subscription into an AI-unlocking proxy with one script.
 
-> Built in a region where Claude is unavailable, with Claude.
-
 ## What It Does
 
 **Unlock the full potential of AI services without compromise.**
@@ -130,6 +128,10 @@ git clone https://github.com/itrowa/clash-unchained.git
 cd clash-unchained
 go build -o clash-unchained .
 ```
+
+## Trivia
+
+Built in a region where Claude is unavailable, with Claude.
 
 ## License
 

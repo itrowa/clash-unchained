@@ -4,8 +4,6 @@
 
 > 一键为任意 Clash 订阅增加住宅静态链式代理与大模型请求智能分流。
 
-> 本项目在 Claude 不可用的地区，由 Claude 完成。
-
 ## 它做什么
 
 **让 AI 服务畅通无阻。**
@@ -132,6 +130,10 @@ git clone https://github.com/itrowa/clash-unchained.git
 cd clash-unchained
 go build -o clash-unchained .
 ```
+
+## Trivia
+
+本项目在 Claude 无法访问的地区，由人类指挥 Claude vibe coding 而成。
 
 ## License
 
