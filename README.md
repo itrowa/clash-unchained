@@ -174,6 +174,10 @@ go build -o clash-unchained .
 
 Built in a region where Claude is unavailable, with Claude.
 
+## Acknowledgments
+
+We acknowledge and appreciate the Linux.do community: https://linux.do/
+
 ## License
 
 MIT

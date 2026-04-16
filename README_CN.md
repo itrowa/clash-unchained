@@ -173,6 +173,10 @@ go build -o clash-unchained .
 
 本项目在 Claude 无法访问的地区，由人类指挥 Claude vibe coding 而成。
 
+## 友情链接
+
+我们认可并感谢Linux.do社区：https://linux.do/
+
 ## License
 
 MIT
